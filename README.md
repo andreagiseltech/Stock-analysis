@@ -39,7 +39,6 @@ Objetivos
    - [ver resumen] (./02_Resumen_stock.pdf)
    - [ver plano del depósito] (./04_Plano_deposito)
    
-markdown
 
 ## CLI Inventory Audit Tools (Bash & SQLite)
 
