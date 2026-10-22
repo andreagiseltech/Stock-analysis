@@ -38,9 +38,26 @@ Objetivos
    - [ver informe] (./03_Informe.pdf)
    - [ver resumen] (./02_Resumen_stock.pdf)
    - [ver plano del depósito] (./04_Plano_deposito)
+   
+markdown
 
+## CLI Inventory Audit Tools (Bash & SQLite)
 
-      Autor
+Este repositorio incluye herramientas desarrolladas en Bash para el procesamiento, validación, e inspección rápida de inventarios de gran volumen.
+
+### 1. Resumen y Formateo de Stock ('resumen.sh')
+Permite visualizar los ítems agrupados por etiquetas claras de categoría, talle y condición, calculando de forma automática el total de unidades.
+* **Uso:** './resumen.sh'
+
+### 2. Validación de Integridad y Diagnóstico ('integrity.sh')
+Script interactivo que verifica la estructura de columnas del CSV contra la base de datos SQLite, detectando inconsistencias o desfases en los registros de stock.
+* **Uso:** ./integrity.sh'
+
+### 3. Inspección Paginada e Interactiva
+* **Navegación numerada:** 'nl -ba stock1.csv | less'
+* **Formateo rápido en consola:** 'column -s',' -t stock1.csv | head -n 15'
+
+     Autor
      Andrea Gisel Barrios
      Proyecto personal con enfoque en análisis de datos y organización operativa.
      
