@@ -1,99 +1,43 @@
 
 #!/bin/bash
-# ==============================================================================
-# Script de Auditoría de Integridad de Datasets y Diagnóstico de Filas Corruptas
-# Autor: Andrea Barrios
-# Descripción: Analiza estructura, separadores, métricas generales y detecta
-# errores de formato o inconsistencias en filas específicas.
-# ==============================================================================
 
-# Configuración de archivos
-CSV_FILE="${1:-data/raw/stock.csv}"
-DB_FILE="stock.db"
-REPORT_FILE="reports/informe_auditoria_diagnostico.txt"
-
-# Crear directorio de reportes si no existe
-mkdir -p reports
+# ==============================================================================
+# SCRIPT DINÁMICO DE AUDITORÍA E INTEGRIDAD DE DATOS (CLI)
+# Autor: Andrea Gisel Barrios
+# ==============================================================================
 
 echo "=================================================="
-echo " INICIANDO AUDITORÍA DE INTEGRIDAD DE DATOS "
+echo " INICIANDO AUDITORIA DINÁMICA DE INTEGRIDAD"
 echo "=================================================="
-echo "Analizando archivo: $CSV_FILE"
-echo ""
 
-# 1. Detección automática del separador (Coma o Punto y Coma)
-PRIMERA_FILA=$(head -n 1 "$CSV_FILE")
-IFSS_COMAS=$(echo "$PRIMERA_FILA" | awk -F',' '{print NF}')
-IFSS_PUNTOS=$(echo "$PRIMERA_FILA" | awk -F';' '{print NF}')
+# 1. Detectar automáticamente cualquier archivo .csv en el directorio actual
+CSV_FILE=$(ls *.csv 2>/dev/null | head -n 1)
 
-if [ "$IFSS_COMAS" -gt "$IFSS_PUNTOS" ]; then
-    SEPARADOR=","
-    CANT_COLUMNAS=$IFSS_COMAS
+if [ -z "$CSV_FILE" ]; then
+    echo "[!] Error: No se encontró ningún archivo CSV en la carpeta actual."
+    exit 1
+fi
+
+echo "[+] Archivo detectado para auditoría: $CSV_FILE"
+echo "--------------------------------------------------"
+
+# 2. Detector de espacios invisibles (leading/trailing spaces)
+echo "[*] Buscando espacios en blanco sospechosos..."
+ESPACIOS=$(grep -n '^[[:space:]]\|[[:space:]],\|, [[:space:]]' "$CSV_FILE")
+
+if [ -n "$ESPACIOS" ]; then
+    echo "[!] ¡Alerta! Se encontraron celdas con espacios en blanco erróneos:"
+    echo "$ESPACIOS"
 else
-    SEPARADOR=";"
-    CANT_COLUMNAS=$IFSS_PUNTOS
+    echo "[ok] Excelente: No se detectaron espacios invisibles al inicio de los campos."
 fi
 
-# 2. Conteo de filas
+echo "--------------------------------------------------"
+
+# 3. Métricas y conteo total de líneas
 TOTAL_FILAS=$(wc -l < "$CSV_FILE")
-FILAS_DATOS=$((TOTAL_FILAS - 1))
+echo "[+] Total de líneas en el archivo (incluyendo cabecera): $TOTAL_FILAS"
 
-# 3. Detección de filas con número incorrecto de columnas (Errores de Pegado / Formato)
-FILAS_CORRUPTAS=$(awk -F"$SEPARADOR" -v cols="$CANT_COLUMNAS" 'NF != cols {print NR}' "$CSV_FILE")
-
-# 4. Cálculo de unidades y registros desde SQLite (si la base está disponible)
-MÉTRICAS_SQL=""
-if [ -f "$DB_FILE" ]; then
-    MÉTRICAS_SQL=$(sqlite3 -header -column "$DB_FILE" "SELECT COUNT(*) AS total_registros_db, SUM(Cantidad) AS total_unidades FROM bar;")
-fi
-
-# 5. Generación del Informe de Salida (.txt)
-{
-    echo "================================================================="
-    echo " INFORME DE AUDITORÍA Y DIAGNÓSTICO DE INTEGRIDAD "
-    echo "================================================================="
-    echo "Fecha de informe : $(date +'%Y-%m-%d %H:%M:%S')"
-    echo "Archivo auditado : $CSV_FILE"
-    echo "Formato / Delim. : '$SEPARADOR' (Campos/Columnas esperados: $CANT_COLUMNAS)"
-    echo "Cantidad de filas: $TOTAL_FILAS (Encabezado + $FILAS_DATOS registros)"
-    echo "-----------------------------------------------------------------"
-    echo "MÉTRICAS GENERALES DE INVENTARIO (SQLite):"
-    echo "$MÉTRICAS_SQL"
-    echo "-----------------------------------------------------------------"
-    echo "ANÁLISIS DE ANOMALÍAS Y ERRORES:"
-    
-    if [ -z "$FILAS_CORRUPTAS" ]; then
-        echo "✔ No se detectaron inconsistencias en la cantidad de columnas."
-    else
-        echo "⚠️ ALERTA: Se encontraron filas con número de columnas/separadores desalineados:"
-        echo "$FILAS_CORRUPTAS" | while read -r line_num; do
-            echo " -> Error en Fila #$line_num"
-        done
-    fi
-    echo ""
-    echo "================================================================="
-    echo " DETALLE EN FORMATO 'LINE' DE LA FILA ESPECÍFICA DE CONSULTA / ERROR "
-    echo "================================================================="
-    
-    # Inspección de la fila 1586 en el CSV (o las filas detectadas con error)
-    TARGET_ROW=${2:-1586}
-    echo "--- Inspección física del archivo CSV (Fila $TARGET_ROW) ---"
-    sed -n "${TARGET_ROW}p" "$CSV_FILE"
-    echo ""
-    
-    if [ -f "$DB_FILE" ]; then
-        echo "--- Detalle vertical en formato LINE (SQLite - Registro correspondiente aprox.) ---"
-        # Muestra el registro 1585 de la tabla (descontando encabezado)
-        OFFSET=$((TARGET_ROW - 2))
-        if [ $OFFSET -ge 0 ]; then
-            sqlite3 -line "$DB_FILE" "SELECT * FROM bar LIMIT 1 OFFSET $OFFSET;"
-        fi
-    fi
-    echo "================================================================="
-} > "$REPORT_FILE"
-
-echo "✔ Auditoría completada."
-echo "📄 Informe de diagnóstico guardado en: $REPORT_FILE"
-echo ""
-echo "--- VISTA PREVIA DEL INFORME ---"
-cat "$REPORT_FILE"
+echo "=================================================="
+echo " AUDITORÍA COMPLETADA CON ÉXITO"
+echo "=================================================="
