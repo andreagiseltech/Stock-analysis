@@ -1,5 +1,5 @@
 # Análisis de Stock y Sectorización de Depósito
-**[Descargar/ Ver CV completo en PDF] (https://acesse.one/kr2gjf2)**
+**[Descargar/ Ver CV completo en PDF] (https://tinyurl.com/bdw29bwd)**
 
 
 Descripción
