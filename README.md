@@ -1,4 +1,7 @@
 # Análisis de Stock y Sectorización de Depósito
+**[Descargar/ Ver CV completo en PDF] (https://tinyurl.com/bdw29bwd)**
+
+
 Descripción
 Proyecto orientado al análisis, validación y organización de stock, junto con la representación de la distibución física de un depósito.
 Se trabajó sobre datos reales para estructurar la información, detectar inconsistencias y generar un modelo claro de interpretación.
